@@ -1,0 +1,205 @@
+---
+title: "Basic education level and BP"
+author: "Adriana Lääti et al."
+date: "`r Sys.Date()`"
+output: html_document
+---
+ 
+
+```{r setup, include=FALSE} 
+
+# Load packages
+library(pacman)
+p_load(here, dplyr, ggplot2,
+         showtext, magick, cowplot)
+
+# Use package "here" to load data sets in a cross-platform (PC, Mac etc.) way:
+#
+# First, tell where you are right now - i.e. location of the file you are running right now
+
+here::i_am("article2/README.R")
+
+# After that, you can check where the project root is by running "here()"
+here()
+
+#  Load the datasets using {here} package
+article2tuva_file <- here("data", "tuva_edu.rds")
+article2utuva_file <- here("data", "utuva_edu.rds")
+article2tuva_utuva_file <- here("data", "tuva_utuva_edu.rds")
+
+
+tuva <- readRDS(article2tuva_file)
+utuva <- readRDS(article2utuva_file)
+
+tuva_utuva <- readRDS(article2tuva_utuva_file)
+
+# Clean up variables
+rm(article2tuva_file, article2utuva_file, article2tuva_utuva_file)
+ 
+
+# Set up necessary general settings
+knitr::opts_chunk$set(echo = FALSE)
+
+# Define constants
+base_size_constant <- 20
+x_margin <- 22
+y_margin <- 18
+
+# Define colors
+custom_colors <- c("1920-born TUVA cohort" = "#7BFBFE",
+                   "1940-born UTUVA cohort" = "#5BFDA5")
+
+# If necessary, additional colors
+additional_colors <- "#FFA8C0"
+
+```
+ 
+<br>
+<br>
+ 
+# Fig. 1 Education vs SBP
+
+<br>
+
+```{r sbp_tuva_utuva}
+
+#################################################################
+##                        Define styles                        ##
+#################################################################
+
+# Load specific font from Google Fonts
+font_add_google("Rosario", family = "rosario")
+
+# Invoke showtext
+showtext_auto()
+
+#levels(utuva$basic_school.factor3)
+
+# Create the box plot
+p_sbp <- ggplot(tuva_utuva, aes(x = basic_school.factor3, y = sbp, fill=cohort)) +
+  
+  theme_classic(base_size = base_size_constant, base_family = "rosario") +
+  
+  geom_boxplot() +
+
+  theme(axis.line = element_line(linewidth = 0.5),     # Set axis line width
+        axis.ticks = element_line(linewidth = 0.5),    # Set axis tick width
+        plot.title = element_text(size = 18),
+        axis.title.x = element_text(size = base_size_constant,
+                                    face = "bold",
+                                    margin = margin(t = x_margin, unit = "pt")),
+        axis.title.y = element_text(size = base_size_constant,
+                                    face = "bold",
+                                    margin = margin(r = y_margin, unit = "pt"))) +
+     
+  scale_y_continuous(name = "Systolic BP (mmHg)") +
+
+  scale_x_discrete(labels = label_wrap_gen(15), 
+                     name = "Level of basic education") +
+
+  # Manually set colors
+  scale_fill_manual(values = custom_colors) +
+  
+    theme(legend.position = "top",
+        legend.title=element_blank(),
+        legend.key.width = unit(0.7,"cm")) 
+ 
+# Display the image
+p_sbp
+
+```
+
+<br>
+<br>
+
+# Fig. 1 Education vs DBP
+
+<br>
+
+```{r dbp_tuva_utuva}
+
+#################################################################
+##                        Define styles                        ##
+#################################################################
+
+# Load specific font from Google Fonts
+font_add_google("Rosario", family = "rosario")
+
+# Invoke showtext
+showtext_auto()
+
+# Create the box plot
+p_dbp <- ggplot(tuva_utuva, aes(x = basic_school.factor3, y = dbp, fill=cohort)) +
+  
+  theme_classic(base_size = base_size_constant, base_family = "rosario") +
+  
+  geom_boxplot() +
+
+  theme(axis.line = element_line(linewidth = 0.5),     # Set axis line width
+        axis.ticks = element_line(linewidth = 0.5),    # Set axis tick width
+        plot.title = element_text(size = 18),
+        axis.title.x = element_text(size = base_size_constant,
+                                    face = "bold",
+                                    margin = margin(t = x_margin, unit = "pt")),
+        axis.title.y = element_text(size = base_size_constant,
+                                    face = "bold",
+                                    margin = margin(r = y_margin, unit = "pt"))) +
+ 
+  scale_y_continuous(breaks = seq(60, 140, 40),
+                     limits = c(50, 142),
+                     name = "Diastolic BP (mmHg)") +
+  
+  scale_x_discrete(labels = label_wrap_gen(15), 
+                     name = "Level of basic education") +
+
+  # Manually set colors
+  scale_fill_manual(values = custom_colors) +
+  
+    theme(legend.position = "top",
+        legend.title=element_blank(),
+        legend.key.width = unit(0.7,"cm")) #+
+
+
+# Display the image
+p_dbp
+ 
+```
+
+<br>
+<br>
+
+# Fig. 1 Panel: SBP and DBP
+
+<br>
+
+```{r sbp_dbp_panel}
+
+# Create a panel
+panel <- plot_grid(p_sbp, NULL, p_dbp,
+                   rel_widths = c(1, 0.1, 1),
+                   nrow = 1)
+
+# Display panel
+panel
+
+# When showtext() is used to change font(s), plots have to be saved as pdf files,
+# otherwise proportions get distorted.
+
+# Save as PDF with dpi specified
+ggsave("basic_education_BP.pdf", width = 15, height =5, dpi = 600)
+
+# Load that pdf file with the magick package
+pdf_image <- magick::image_read_pdf("basic_education_BP.pdf", density = 600)
+
+# Save it as PNG
+image_write(pdf_image,
+            path = "basic_education_BP.png",
+            format = "png",
+            density = 600)
+
+ 
+```
+
+<br>
+<br>
+

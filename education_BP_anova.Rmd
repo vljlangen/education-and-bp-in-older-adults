@@ -1,0 +1,282 @@
+---
+title: "Education and BP, ANOVA analyses"
+author: "Adriana Lääti et al."
+date: "`r Sys.Date()`"
+output: html_document
+---
+ 
+
+```{r setup, include=FALSE} 
+
+# Load packages
+library(pacman)
+library(tableone)
+library(officer)
+library(flextable)
+library(knitr)
+p_load(here, dplyr)
+
+# Use package "here" to load data sets in a cross-platform (PC, Mac etc.) way:
+#
+# First, tell where you are right now - i.e. location of the file you are running right now
+
+here::i_am("article2/README.R")
+
+# After that, you can check where the project root is by running "here()"
+here()
+
+#  Load the datasets using {here} package
+article2tuva_file <- here("data", "tuva_edu.rds")
+article2utuva_file <- here("data", "utuva_edu.rds")
+article2tuva_utuva_file <- here("data", "tuva_utuva_edu.rds")
+
+
+tuva <- readRDS(article2tuva_file)
+utuva <- readRDS(article2utuva_file)
+
+tuva_utuva <- readRDS(article2tuva_utuva_file)
+
+# Clean up variables
+rm(article2tuva_file, article2utuva_file, article2tuva_utuva_file)
+ 
+
+# Set up necessary general settings
+knitr::opts_chunk$set(echo = FALSE)
+
+
+```
+ 
+ 
+<br>
+<br> 
+ 
+## Display structure for TUVA data
+
+<br>
+
+```{r structure_tuva}
+
+# Display data structure
+tuva %>% str()
+
+# Counts by educations groups
+tuva %>% count(basic_school.factor3)
+ 
+
+```
+
+ 
+<br>
+<br>
+
+
+## ANOVA analyses for SBP within TUVA
+
+<br>
+
+```{r anova_tuva_sbp}
+
+
+# SBP by basic school education
+tuva %>% group_by(basic_school.factor3) %>%
+         summarize(mean_SBP = mean(tuva1sbp)) %>%
+         as.data.frame() %>% 
+         mutate_if(is.numeric, round, 1)
+
+# ANOVA
+anova_sbp_tuva <- aov(tuva1sbp ~ basic_school.factor3, data = tuva)
+summary_aov1 <- summary(anova_sbp_tuva)
+print(summary_aov1)
+
+```
+
+
+<br>
+<br>
+ 
+## ANOVA analyses for DBP within TUVA
+
+<br>
+
+```{r anova_tuva_dbp}
+
+# DBP by basic school education
+tuva %>% group_by(basic_school.factor3) %>%
+         summarize(mean_DBP = mean(tuva1dbp)) %>%
+         as.data.frame() %>% 
+         mutate_if(is.numeric, round, 1)
+
+# ANOVA
+anova_dbp_tuva <- aov(tuva1dbp ~ basic_school.factor3, data = tuva)
+summary_aov2 <- summary(anova_dbp_tuva)
+
+print(summary_aov2)
+
+```
+
+
+<br>
+<br>
+ 
+
+## Display structure for UTUVA data
+
+<br>
+
+```{r structure_utuva}
+
+# Display data structure
+utuva %>% str()
+
+# Counts by educations groups
+utuva %>% count(basic_school.factor3)
+
+
+```
+
+<br>
+<br>
+
+
+## ANOVA analyses for SBP within UTUVA
+
+<br>
+
+```{r anova_utuva_sbp}
+
+
+# SBP by basic school education
+utuva %>% group_by(basic_school.factor3) %>%
+         summarize(mean_SBP = mean(utuva1sbp)) %>%
+         as.data.frame() %>% 
+         mutate_if(is.numeric, round, 1)
+
+# ANOVA
+anova_sbp_utuva <- aov(utuva1sbp ~ basic_school.factor3, data = utuva)
+summary_aov3 <- summary(anova_sbp_utuva)
+print(summary_aov3)
+
+```
+
+
+<br>
+<br>
+
+
+## ANOVA analyses for DBP within UTUVA
+
+<br>
+
+```{r anova_utuva_dbp}
+
+# DBP by basic school education
+utuva %>% group_by(basic_school.factor3) %>%
+         summarize(mean_DBP = mean(utuva1dbp)) %>%
+         as.data.frame() %>% 
+         mutate_if(is.numeric, round, 1)
+
+# ANOVA
+anova_dbp_utuva <- aov(utuva1dbp ~ basic_school.factor3, data = utuva)
+summary_aov4 <- summary(anova_dbp_utuva)
+print(summary_aov4)
+
+```
+
+
+<br>
+<br>
+
+# TUVA mean SBP
+
+<br>
+
+```{r}
+
+tuva %>%
+  group_by(basic_school.factor3) %>%
+  summarize(
+    mean_tuva1sbp = mean(tuva1sbp, na.rm = TRUE),
+    sd_tuva1spd = sd(tuva1sbp, na.rm = TRUE)
+  )
+```
+
+<br>
+<br>
+
+# TUVA mean DBP
+
+<br>
+
+```{r}
+
+tuva %>%
+  group_by(basic_school.factor3) %>%
+  summarize(
+    mean_tuva1dbp = mean(tuva1dbp, na.rm = TRUE),
+    sd_tuva1dbp = sd(tuva1dbp, na.rm = TRUE)
+  )
+```
+
+<br>
+<br>
+
+# UTUVA mean SBP
+
+<br>
+
+```{r}
+
+utuva %>%
+  group_by(basic_school.factor3) %>%
+  summarize(
+    mean_utuva1sbp = mean(utuva1sbp, na.rm = TRUE),
+    sd_utuva1sbp = sd(utuva1sbp, na.rm = TRUE)
+    )
+```
+
+
+<br>
+<br>
+
+# UTUVA mean DBP
+
+<br>
+
+```{r}
+
+utuva %>%
+  group_by(basic_school.factor3) %>%
+  summarize(
+    mean_utuva1dbp = mean(utuva1dbp, na.rm = TRUE),
+    sd_utuva1dbp = sd(utuva1dbp, na.rm = TRUE)
+  )
+```
+
+<br>
+<br>
+
+# Summary of the ANOVA results
+
+<br>
+
+```{r}
+
+anova_results <- data.frame(
+  Model = c("Basic education TUVA: SBP", "Basic education TUVA: DBP", 
+            "Basic education UTUVA: SBP", "Basic education TUVA: DBP"),
+  F_statistic = c(summary_aov1[[1]]$`F value`[1],
+                  summary_aov2[[1]]$`F value`[1],
+                  summary_aov3[[1]]$`F value`[1],
+                  summary_aov4[[1]]$`F value`[1]),
+  p_value = c(summary_aov1[[1]]$`Pr(>F)`[1],
+              summary_aov2[[1]]$`Pr(>F)`[1],
+              summary_aov3[[1]]$`Pr(>F)`[1],
+              summary_aov4[[1]]$`Pr(>F)`[1])
+)
+
+
+kable(anova_results, caption = "ANOVA Results Summary")
+
+
+```
+

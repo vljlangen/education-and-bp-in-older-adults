@@ -1,0 +1,331 @@
+---
+title: "Education and BP, RCS figures"
+author: "Adriana Lääti et al."
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    self_contained: true
+---
+
+## Preprocess data
+```{r setup, include=FALSE}
+
+# Load packages
+library(pacman)
+p_load(showtext, here, rms, ggplot2, dplyr, magick, cowplot)
+
+# Load Data
+
+# Use package "here" to load data sets in a cross-platform (PC, Mac etc.) way:
+#
+# First, tell where you are right now - i.e. location of the file you are running right now
+
+here::i_am("article2/README.R")
+
+# After that, you can check where the project root is by running "here()"
+here()
+
+#  Load the datasets using {here} package
+article2tuva_file <- here("data", "tuva_edu.rds")
+article2utuva_file <- here("data", "utuva_edu.rds")
+
+tuva <- readRDS(article2tuva_file)
+utuva <- readRDS(article2utuva_file)
+
+# Clean up variables
+rm(article2tuva_file, article2utuva_file)
+ 
+# Set up necessary general settings
+knitr::opts_chunk$set(echo = TRUE)
+
+# Set constants
+basesize <- 20
+axisfontsize <- 18
+
+```
+
+<br>
+<br>
+
+### Linear Regression Model with RCS Transformation combined 
+
+<br>
+
+```{r rcs_tuva_utuva_sbp, echo=TRUE}
+
+# Load specific font from Google Fonts
+font_add_google("Rosario", family = "rosario")
+
+# Invoke showtext
+showtext_auto()
+
+linear_model_utuva_sbp <- lm(utuva1sbp ~ rcs(edu_duration, 3), data = utuva)
+utuva$predicted_sbp <- predict(linear_model_utuva_sbp, utuva, se.fit = TRUE)$fit
+utuva$se_sbp <- predict(linear_model_utuva_sbp, utuva, se.fit = TRUE)$se.fit
+
+linear_model_tuva_sbp <- lm(tuva1sbp ~ rcs(edu_duration, 3), data = tuva)
+tuva$predicted_sbp <- predict(linear_model_tuva_sbp, tuva, se.fit = TRUE)$fit
+tuva$se_sbp <- predict(linear_model_tuva_sbp, tuva, se.fit = TRUE)$se.fit
+
+tuva$cohort <- "1920-born TUVA cohort"
+utuva$cohort <- "1940-born UTUVA cohort"
+
+tuva_sbp <- tuva %>% select(cohort, edu_duration, predicted_sbp, se_sbp)
+utuva_sbp <- utuva %>% select(cohort, edu_duration, predicted_sbp, se_sbp)
+tuva_utuva_sbp <- rbind(tuva_sbp, utuva_sbp)
+
+# Define colors
+custom_colors <- c("1920-born TUVA cohort" = "#7AFBFE",
+                   "1940-born UTUVA cohort" = "#5CFDA5")
+
+# Create plot
+ggplot() +
+    theme_classic(base_size = basesize, base_family = "rosario") +
+  
+
+    # TUVA-UTUVA:
+  geom_ribbon(data = tuva_utuva_sbp,
+                aes(x = edu_duration,
+                    ymin = predicted_sbp - 1.96 * se_sbp,
+                    ymax = predicted_sbp + 1.96 * se_sbp,
+                    fill = cohort), alpha = 0.5) +
+  
+      # TUVA:
+    geom_line(data = tuva_sbp,
+              aes(x = edu_duration, y = predicted_sbp), color = "#018A8D", size=1) +
+
+    # UTUVA:
+    geom_line(data = utuva_sbp,
+              aes(x = edu_duration, y = predicted_sbp), color = "#02AA4E", size=1) +
+  
+  
+    scale_x_continuous(expand = c(0, 0),
+                       breaks = c(0, 5, 10, 15, 20, 25),
+                       limits = c(0,25),
+                       name = "Education duration (years)") +
+
+    scale_y_continuous(expand = c(0, 0),
+                       breaks = seq(130, 170, 10),
+                       limits = c(130, 170),
+                       name = "Systolic blood pressure (mmHg)") +
+
+  theme(axis.line = element_line(linewidth = 0.5),     # Set axis line width
+        axis.ticks = element_line(linewidth = 0.5),    # Set axis tick width
+        plot.title = element_text(size = 18),
+        axis.title.x = element_text(size = axisfontsize,
+                                    face = "bold",
+                                    margin = margin(t = 18, unit = "pt")),
+        axis.title.y = element_text(size = axisfontsize,
+                                    face = "bold",
+                                    margin = margin(r = 15, unit = "pt"))) +
+
+    # Manually set colors
+    scale_fill_manual(values = custom_colors) +
+
+    # Create the legend
+      theme(legend.position = c(.29, .1),
+        legend.title=element_blank(),
+        legend.key.width = unit(1,"cm")) 
+
+
+# Save as PDF with dpi specified
+ggsave("education_SBP_rcs_fig3.pdf", width = 7, height =5, dpi = 600)
+
+
+# Load that pdf file with the magick package
+pdf_image <- magick::image_read_pdf("education_SBP_rcs_fig3.pdf", density = 600)
+
+# Draw manually lines to the legend with the magick package to polish the appearance
+img <- image_draw(pdf_image)
+par(lend = 1) # Use lend = 0 for round cap, lend = 1 for butt cap, lend = 2 for square cap
+segments(x0 = 773, y0 = 2115, x1 = 995, y1 = 2115, col = '#018A8D', lwd = 20, lty = "solid")
+segments(x0 = 773, y0 = 2259, x1 = 995, y1 = 2259, col = '#02AA4E', lwd = 20, lty = "solid")
+
+dev.off()
+
+print(img)
+
+
+# Save it as PNG
+image_write(img,
+            path = "education_SBP_rcs_fig3.png",
+            format = "png",
+            density = 600)
+
+```
+
+<br>
+<br>
+
+### Linear Regression Model with RCS Transformation combined 
+
+<br>
+
+```{r rcs_tuva_utuva_dbp, echo=TRUE}
+
+# Load specific font from Google Fonts
+font_add_google("Rosario", family = "rosario")
+
+# Invoke showtext
+showtext_auto()
+
+linear_model_tuva_dbp <- lm(tuva1dbp ~ rcs(edu_duration, 3), data = tuva)
+tuva$predicted_dbp <- predict(linear_model_tuva_dbp, tuva, se.fit = TRUE)$fit
+tuva$se_dbp <- predict(linear_model_tuva_dbp, tuva, se.fit = TRUE)$se.fit
+
+#tuva %>% select(edu_duration, predicted_dbp, se_dbp) %>% arrange(edu_duration) %>% kable()
+
+linear_model_utuva_dbp <- lm(utuva1dbp ~ rcs(edu_duration, 3), data = utuva)
+utuva$predicted_dbp <- predict(linear_model_utuva_dbp, utuva, se.fit = TRUE)$fit
+utuva$se_dbp <- predict(linear_model_utuva_dbp, utuva, se.fit = TRUE)$se.fit
+
+#utuva %>% select(edu_duration, predicted_dbp, se_dbp) %>% arrange(edu_duration) %>% kable()
+
+
+tuva$cohort <- "1920-born TUVA cohort"
+utuva$cohort <- "1940-born UTUVA cohort"
+
+
+tuva_dbp <- tuva %>% select(cohort, edu_duration, predicted_dbp, se_dbp)
+utuva_dbp <- utuva %>% select(cohort, edu_duration, predicted_dbp, se_dbp)
+tuva_utuva_dbp <- rbind(tuva_dbp, utuva_dbp)
+
+# Define colors
+custom_colors <- c("1920-born TUVA cohort" = "#7AFBFE",
+                   "1940-born UTUVA cohort" = "#5CFDA5")
+
+# Create plot
+ggplot() +
+    theme_classic(base_size = basesize, base_family = "rosario") +
+
+    # TUVA-UTUVA:
+  geom_ribbon(data = tuva_utuva_dbp,
+                aes(x = edu_duration,
+                    ymin = predicted_dbp - 1.96 * se_dbp,
+                    ymax = predicted_dbp + 1.96 * se_dbp,
+                    fill = cohort), alpha = 0.5) +
+  
+      # TUVA:
+    geom_line(data = tuva_dbp,
+              aes(x = edu_duration, y = predicted_dbp), color = "#018A8D", size=1) +
+
+    # UTUVA:
+    geom_line(data = utuva_dbp,
+              aes(x = edu_duration, y = predicted_dbp), color = "#02AA4E", size=1) +
+
+    scale_x_continuous(expand = c(0, 0),
+                       breaks = c(0, 5, 10, 15, 20, 25),
+                       limits = c(0,25),
+                       name = "Education duration (years)") +
+
+    scale_y_continuous(expand = c(0, 0),
+                       breaks = seq(70, 100, 10),
+                       limits = c(70, 100),
+                       name = "Diastolic blood pressure (mmHg)") +
+
+  theme(axis.line = element_line(linewidth = 0.5),     # Set axis line width
+        axis.ticks = element_line(linewidth = 0.5),    # Set axis tick width
+        plot.title = element_text(size = 18),
+        axis.title.x = element_text(size = axisfontsize,
+                                    face = "bold",
+                                    margin = margin(t = 18, unit = "pt")),
+        axis.title.y = element_text(size = axisfontsize,
+                                    face = "bold",
+                                    margin = margin(r = 15, unit = "pt"))) +
+ 
+    # Manually set colors
+    scale_fill_manual(values = custom_colors) +
+
+    # Create the legend
+      theme(legend.position = c(.29, .1),
+        legend.title=element_blank(),
+        legend.key.width = unit(1,"cm")) +
+  
+    # Manually draw the lines to the legend
+    annotate("segment", x = 0.8181818, xend = 2.2727273,
+             y = 73.83562, yend = 73.83562,
+             color = "#018A8D")
+
+
+# Save as PDF with dpi specified
+ggsave("education_DBP_rcs_fig3.pdf", width = 7, height =5, dpi = 600)
+
+
+# Load that pdf file with the magick package
+pdf_image <- magick::image_read_pdf("education_DBP_rcs_fig3.pdf", density = 600)
+
+
+# Draw manually lines to the legend with the magick package to polish the appearance
+img <- image_draw(pdf_image)
+par(lend = 1) # Use lend = 0 for round cap, lend = 1 for butt cap, lend = 2 for square cap
+segments(x0 = 776, y0 = 2115, x1 = 1000, y1 = 2115, col = '#018A8D', lwd = 20, lty = "solid")
+segments(x0 = 776, y0 = 2259, x1 = 1000, y1 = 2259, col = '#02AA4E', lwd = 20, lty = "solid")
+
+#segments(x0 = 654, y0 = 2178, x1 = 878, y1 = 2178, col = '#018A8D', lwd = 20, lty = "solid")
+#segments(x0 = 654, y0 = 2321, x1 = 878, y1 = 2321, col = '#02AA4E', lwd = 20, lty = "solid")
+dev.off()
+
+print(img)
+
+
+# Save it as PNG
+image_write(img,
+            path = "education_DBP_rcs_fig3.png",
+            format = "png",
+            density = 600)
+
+```
+
+<br>
+<br> 
+
+### Make a panel
+
+<br>
+
+```{r sbp_dbp_panel, echo=TRUE}
+ 
+
+# Load SBP image with magick
+sbp <- image_read("education_SBP_rcs_fig3.png", density=600)
+print(sbp)
+
+# Load DBP image with magick
+dbp <- image_read("education_DBP_rcs_fig3.png", density=600)
+print(dbp)
+
+# Create a panel
+# {cowplot} package cannot be used, as the small plots have been finalized
+# with {magick}. However, magick::image_montage() does the same effect.
+input <- c(sbp, dbp)
+panel <- image_montage(input,
+                       geometry = 'x1500+100+0',
+                       tile = '2x1',
+                       bg = 'white')
+
+# Display panel
+panel
+
+# Crop panel from left
+panel <- magick::image_crop(panel, geometry = '+90')
+
+# Display cropped panel
+panel
+
+# Crop panel from right
+panel <- magick::image_crop(panel, geometry = '-90')
+
+# Display cropped panel
+panel
+
+# Save it as PNG
+image_write(panel,
+            path = "education_SBP_DBP_rcs_fig3.png",
+            format = "png",
+            density = 300)
+
+```
+
+
+
+

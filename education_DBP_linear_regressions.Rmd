@@ -1,0 +1,141 @@
+---
+title: "Education and DBP, regression analyses"
+author: "Adriana Lääti et al."
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    self_contained: true
+---
+
+## Preprocess data
+```{r setup, include=FALSE}
+
+# Load packages
+library(pacman)
+p_load(here, dplyr, broom, knitr)
+
+# Load Data
+
+# Use package "here" to load data sets in a cross-platform (PC, Mac etc.) way:
+#
+# First, tell where you are right now - i.e. location of the file you are running right now
+
+here::i_am("article2/README.R")
+
+# After that, you can check where the project root is by running "here()"
+here()
+
+#  Load the datasets using {here} package
+article2tuva_file <- here("data", "tuva_edu.rds")
+article2utuva_file <- here("data", "utuva_edu.rds")
+
+tuva <- readRDS(article2tuva_file)
+utuva <- readRDS(article2utuva_file)
+
+# Clean up variables
+rm(article2tuva_file, article2utuva_file)
+ 
+# Set up necessary general settings
+knitr::opts_chunk$set(echo = TRUE)
+
+
+```
+
+<br>
+<br>
+
+### TUVA: crude linear regression model, education years vs DBP
+
+<br>
+
+```{r education_vs_dbp_tuva_crude, echo=TRUE}
+
+# Run a crude regression model
+tuva %>%  lm(tuva1dbp ~ edu_duration, data = .) %>%
+          summary()
+          
+# The function tidy() gathers the statistics from that model to a data frame,
+# which makes it very easy to make a table of them later on, with e.g. flextable()
+tuva_dbp_res_crude <- tuva %>%
+                  lm(tuva1dbp ~ edu_duration, data = .) %>% tidy()
+
+# That data frame can nicely be viewed with kable()
+tuva_dbp_res_crude %>% kable()
+
+```
+
+<br>
+<br>
+
+### TUVA: multiple linear regression model, education years vs DBP
+
+<br>
+
+```{r education_vs_dbp_tuva_adjusted, echo=TRUE}
+
+# Run a multiple regression model
+tuva %>%  lm(tuva1dbp ~ edu_duration +
+                        tuva1age + tuva1gender.factor
+                        + tuva1smoking.factor + tuva1bmi, data = .) %>%
+           summary()
+
+# The function tidy() gathers the statistics from that model to a data frame,
+# which makes it very easy to make a table of them later on, with e.g. flextable()
+tuva_dbp_res_mult <- tuva %>%
+                  lm(tuva1dbp ~ edu_duration +
+                        tuva1age + tuva1gender.factor
+                        + tuva1smoking.factor + tuva1bmi, data = .) %>% tidy()
+
+# That data frame can nicely be viewed with kable()
+tuva_dbp_res_mult %>% kable()
+
+```
+
+<br>
+<br>
+
+### UTUVA: crude linear regression model, education years vs DBP
+
+<br>
+
+```{r education_vs_dbp_utuva_crude, echo=TRUE}
+
+# Run the regression model
+
+utuva %>%  lm(utuva1dbp ~ edu_duration, data = .) %>%
+          summary()
+
+
+utuva_dbp_res_crude <- utuva %>%
+                  lm(utuva1dbp ~ edu_duration, data = .) %>% tidy()
+
+utuva_dbp_res_crude %>% kable()
+
+```
+
+<br>
+<br>
+
+### UTUVA: multiple linear regression model, education years vs DBP
+
+<br>
+
+```{r education_vs_dbp_utuva_multiple, echo=TRUE}
+
+# Run a multiple regression model
+
+utuva %>%  lm(utuva1dbp ~ edu_duration +
+                        utuva1age + utuva1gender.factor
+                        + utuva1smoking.factor + utuva1bmi, data = .) %>%
+           summary()
+
+
+utuva_dbp_res_mult <- utuva %>%
+                  lm(utuva1dbp ~ edu_duration +
+                        utuva1age + utuva1gender.factor
+                        + utuva1smoking.factor + utuva1bmi, data = .) %>% tidy()
+
+utuva_dbp_res_mult %>% kable()
+
+```
+

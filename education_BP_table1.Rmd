@@ -1,0 +1,200 @@
+---
+title: "Education and BP, Table 1. Characteristics"
+author: "Adriana Lääti et al."
+date: "`r Sys.Date()`"
+output: html_document
+---
+ 
+
+```{r setup, include=FALSE} 
+
+# Load necessary packages:
+library(pacman)
+p_load(here,  knitr, dplyr, flextable, officer, tableone, tablestylizer, tableone)
+
+# Load Data
+
+# Use package "here" to load data sets in a cross-platform (PC, Mac etc.) way:
+#
+# First, tell where you are right now - i.e. location of the file you are running right now
+
+here::i_am("article2/README.R")
+
+# After that, you can check where the project root is by running "here()"
+here()
+
+#  Load the datasets using {here} package
+# article2tuva_file <- here("data", "tuva_edu.rds")
+# article2utuva_file <- here("data", "utuva_edu.rds")
+article2file <- here("data", "tuva_utuva_edu.rds")
+
+# tuva <- readRDS(article2tuva_file)
+# utuva <- readRDS(article2utuva_file)
+tuva_utuva_edu <- readRDS(article2file)
+
+# Clean up variables
+# rm(article2tuva_file, article2utuva_file)
+rm(article2file)
+
+# Set up necessary general settings
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+ 
+
+<br>
+<br>
+
+## Verify variable classes
+
+<br>
+
+```{r var_classes}
+
+str(tuva_utuva_edu)
+
+```
+
+
+<br>
+<br>
+
+## Rename variables
+
+<br>
+
+```{r rename}
+
+tuva_utuva_edu <- tuva_utuva_edu %>%
+                 rename(`Age (years)` = age ,
+                        `Women`= gender.factor,
+                        `Systolic BP (mmHg)`= sbp ,
+                        `Diastolic BP (mmHg)` = dbp,
+                        `Basic education` = basic_school.factor3,
+                        `Body mass index (kg/m2)` = bmi,
+                        `Education duration (years)` = edu_duration,
+                        `Smoking status`= smoking.factor)
+
+```
+
+<br>
+<br>
+
+## Prepare variables for creating a tableone object
+
+<br>
+
+```{r tableone_anova}
+
+## List all necessary variable names as a "vector"
+myVars <- c(
+"Age (years)",
+"Women",
+"Basic education",
+"Education duration (years)",
+"Systolic BP (mmHg)",
+"Diastolic BP (mmHg)",
+"Body mass index (kg/m2)",
+"Smoking status"
+)
+
+# # Of the above, list only categorical variables
+# catVars <- c("Women", "Basic education", "Smoking status")
+
+  
+# # Create and store a tableone object
+# article2table1 <- CreateTableOne(vars = myVars, strata = "cohort",
+#                                 data = tuva_utuva_edu, factorVars = catVars)
+
+# Create and store a tableone object
+article2table1 <- CreateTableOne(vars = myVars, strata = "cohort",
+                                data = tuva_utuva_edu)
+
+#Display the tableone object
+article2table1
+
+
+# Process the tableone object with stylize_tableone()
+article2table1_stylized <- stylize_tableone(article2table1)
+
+# Display the table
+article2table1_stylized %>% print(right = FALSE) 
+
+# Erase the redundant column "test"
+article2table1_stylized <- article2table1_stylized %>% select(-test)
+
+# Display the table anew
+article2table1_stylized %>% print(right = FALSE) 
+
+  
+```
+
+
+<br>
+<br>
+
+## Turn the Table 1 object into a flextable object
+
+<br>
+
+```{r turn_into_flextable}
+
+ft <- article2table1_stylized %>%  flextable() %>% autofit()
+
+ft <- ft %>% align(j = 2:4, align = "center", part = "all")
+
+ft <- ft %>% add_header_lines("Table 1. Characteristics of the study cohorts.")
+
+ft <- ft %>% add_footer_lines("Values are means ± standard deviations for continuous data and numbers and percentages for categorical data. BP, blood pressure.")
+
+ft <- ft %>% bold(part = "header", bold = TRUE)
+
+# There is no need for prepending with tableone;
+# although it doesn't show in the R Markdown output,
+# prepending happens automatically, as is seen, when the table is exported as docx
+
+# ft <- ft %>% prepend_chunks(i = 7:9, j = 1, as_chunk("\t"))
+# 
+# ft <- ft %>% prepend_chunks(i = 13:15, j = 1, as_chunk("\t"))
+
+ft
+
+```
+
+<br>
+<br>
+
+
+## Save the resulting table as .docx (and .png)
+
+Save the table as .docx and .png and display the table (as .png).
+
+<br>
+
+```{r save_as_docx}
+
+#Modify width if needed
+#ft <- ft  %>% width(width = 2.5)
+ft <- ft   %>% autofit()
+
+
+#Save as word .docx
+save_as_docx(ft, path = "education_BP_table1.docx",
+pr_section =
+prop_section(page_size = page_size(orient = "portrait"),
+type = "continuous"))
+
+
+# Save the table as image (useful for viewing the table within this R Markdown document)
+save_as_image(ft, "education_BP_table1.png")
+
+```
+
+
+```{r show_table_as_png, echo=FALSE}
+
+# Display the ready panel
+knitr::include_graphics("education_BP_table1.png")
+
+```
+
