@@ -57,6 +57,43 @@ additional_colors <- "#FFA8C0"
 <br>
 <br>
  
+
+## Display N number for TUVA data
+
+<br>
+
+```{r n_tuva}
+
+tuva %>% nrow()
+tuva_utuva %>% filter(cohort == "1920-born TUVA cohort") %>% nrow()
+ 
+
+```
+
+   
+ 
+<br>
+<br>
+ 
+## Display N number for UTUVA data
+
+<br>
+
+```{r n_utuva}
+
+utuva %>% nrow()
+tuva_utuva %>% filter(cohort == "1940-born UTUVA cohort") %>% nrow() 
+
+
+```
+
+   
+ 
+<br>
+<br>
+  
+ 
+ 
 # Fig. 1 Education vs SBP
 
 <br>
@@ -186,18 +223,25 @@ panel
 # otherwise proportions get distorted.
 
 # Save as PDF with dpi specified
-ggsave("basic_education_BP.pdf", width = 15, height =5, dpi = 600)
+ggsave("figure1_basic_education_BP.pdf", width = 15, height =5, dpi = 600)
 
 # Load that pdf file with the magick package
-pdf_image <- magick::image_read_pdf("basic_education_BP.pdf", density = 600)
+pdf_image <- magick::image_read_pdf("figure1_basic_education_BP.pdf", density = 600)
 
 # Save it as PNG
 image_write(pdf_image,
-            path = "basic_education_BP.png",
+            path = "figure1_basic_education_BP.png",
             format = "png",
             density = 600)
 
- 
+# Save it as TIFF
+image_write(pdf_image,
+            path = "figure1_basic_education_BP.tiff",
+            format = "tiff",
+            density = 600,
+            compression = "LZW")
+
+
 ```
 
 <br>

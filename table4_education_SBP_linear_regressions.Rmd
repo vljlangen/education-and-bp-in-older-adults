@@ -44,6 +44,45 @@ knitr::opts_chunk$set(echo = TRUE)
 <br>
 <br>
 
+
+
+## Display N number for TUVA data
+
+<br>
+
+```{r n_tuva}
+
+tuva %>% nrow()
+ 
+
+```
+
+   
+ 
+<br>
+<br>
+ 
+## Display N number for UTUVA data
+
+<br>
+
+```{r n_utuva}
+
+utuva %>% nrow()
+ 
+
+```
+
+   
+ 
+<br>
+<br>
+
+
+
+
+
+
 ### TUVA: crude linear regression model, education years vs SBP
 
 <br>

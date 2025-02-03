@@ -1,0 +1,103 @@
+---
+title: "Education and BP, exploration of the continuous education variable"
+author: "Adriana Lääti et al."
+date: "06/02/2024"
+output: 
+  html_document:
+    self_contained: true
+---
+
+## Preprocess data
+```{r setup, include=FALSE}
+
+library(pacman)
+p_load(here, dplyr, broom, broom, knitr, psych, naniar)
+
+# Load Data
+
+# Use package "here" to load data sets in a cross-platform (PC, Mac etc.) way:
+#
+# First, tell where you are right now - i.e. location of the file you are running right now
+
+here::i_am("article2/README.R")
+
+# After that, you can check where the project root is by running "here()"
+here()
+
+#  Load the datasets using {here} package
+article2tuva_file <- here("data", "tuva_edu.rds")
+article2utuva_file <- here("data", "utuva_edu.rds")
+
+tuva <- readRDS(article2tuva_file)
+utuva <- readRDS(article2utuva_file)
+
+# Clean up variables
+rm(article2tuva_file, article2utuva_file)
+ 
+
+# Set up necessary general settings
+knitr::opts_chunk$set(echo = TRUE)
+
+ 
+
+```
+
+
+
+
+### Run psych::describe for imputed continuous education variables
+
+```{r, echo=TRUE}
+
+psych::describe(tuva$edu_duration)
+
+psych::describe(utuva$edu_duration)
+                
+           
+
+```
+
+ 
+ 
+
+
+### Run psych::describe for non-imputed continuous education variables
+
+```{r, echo=TRUE}
+
+psych::describe(tuva$edu_duration_nonimp)
+
+psych::describe(utuva$edu_duration_nonimp)
+                
+           
+
+```
+ 
+ 
+ 
+### Run naniar analysis for TUVA
+
+```{r, echo=TRUE}
+
+naniar_df_tuva <- tuva %>% select(edu_duration, edu_duration_nonimp)
+
+miss_var_summary(naniar_df_tuva) 
+
+
+```
+  
+ 
+ 
+### Run naniar analysis for UTUVA
+
+```{r, echo=TRUE}
+
+naniar_df_utuva <- utuva %>% select(edu_duration, edu_duration_nonimp)
+
+miss_var_summary(naniar_df_utuva) 
+
+
+```
+  
+ 
+ 

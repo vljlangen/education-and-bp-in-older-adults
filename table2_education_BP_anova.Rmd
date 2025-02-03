@@ -40,8 +40,42 @@ tuva_utuva <- readRDS(article2tuva_utuva_file)
 rm(article2tuva_file, article2utuva_file, article2tuva_utuva_file)
  
 
+
+# Load hypertension prevalence and BP medication data from Article 1 analyses
+ht_file_tuva <- here("data", "article1tuva_bp_meds_final.rds")
+ht_file_utuva <- here("data", "article1utuva_bp_meds_final.rds")
+
+ht_tuva <- readRDS(ht_file_tuva)
+ht_utuva <- readRDS(ht_file_utuva)
+
+# Clean up variables
+# rm(article2tuva_file, article2utuva_file)
+rm(article2file, ht_file_tuva, ht_file_utuva)
+
+# Only retain the wanted hypertension/medication variables
+ht_tuva <- ht_tuva %>% select(ID1991, hypertension_tuva1, antihypertensive_med)
+ht_tuva <- ht_tuva %>% rename(hypertension = hypertension_tuva1)
+
+ht_utuva <- ht_utuva %>% select(ID1991, antihypertensive_med, hypertension_utuva1)
+ht_utuva <- ht_utuva %>% rename(hypertension = hypertension_utuva1)
+
+# Merge the hypertension prevalence and BP medication use data from Article 1
+tuva <- left_join(tuva, ht_tuva, by = "ID1991")
+
+
+utuva <- left_join(utuva, ht_utuva, by = "ID1991")
+
+
+
+# Clean up variables
+# rm(article2tuva_file, article2utuva_file)
+rm(ht_tuva, ht_utuva)
+  
 # Set up necessary general settings
 knitr::opts_chunk$set(echo = FALSE)
+
+
+
 
 
 ```
@@ -49,6 +83,40 @@ knitr::opts_chunk$set(echo = FALSE)
  
 <br>
 <br> 
+ 
+ 
+
+## Display N number for TUVA data
+
+<br>
+
+```{r n_tuva}
+
+tuva_utuva %>% filter(cohort == "1920-born TUVA cohort") %>% nrow()
+
+```
+
+   
+ 
+<br>
+<br>
+ 
+## Display N number for UTUVA data
+
+<br>
+
+```{r n_utuva}
+
+tuva_utuva %>% filter(cohort == "1940-born UTUVA cohort") %>% nrow() 
+ 
+
+```
+
+   
+ 
+<br>
+<br>
+
  
 ## Display structure for TUVA data
 
@@ -119,6 +187,64 @@ print(summary_aov2)
 <br>
  
 
+
+## Chi square test analyses for hypertension within TUVA
+
+<br>
+
+```{r tuva_ht}
+
+# Summarize variation in antihypertensive medication use by basic school education
+tuva %>%
+    group_by(basic_school.factor3) %>%
+    summarise(n_total = n(),
+              n_ht = sum(hypertension == 1),
+              percentage_ht = 100 * mean(hypertension))
+
+tuva$hypertension.factor <- factor(tuva$hypertension)
+
+# Chi-square test for association between antihypertensive medication use and education groups
+chisq.test(table(tuva$hypertension.factor, tuva$basic_school.factor3))
+
+```
+
+
+<br>
+<br>
+
+
+
+
+
+## Chi square test analyses for BP meds within TUVA
+
+<br>
+
+```{r tuva_bp_meds}
+
+# Summarize variation in antihypertensive medication use by basic school education
+tuva %>%
+    group_by(basic_school.factor3) %>%
+    summarise(n_total = n(),
+              n_on_BP_meds = sum(antihypertensive_med == 1),
+              percentage_meds = 100 * mean(antihypertensive_med))
+
+
+tuva$antihypertensive_med.factor <- factor(tuva$antihypertensive_med)
+
+# Chi-square test for association between antihypertensive medication use and education groups
+chisq.test(table(tuva$antihypertensive_med.factor, tuva$basic_school.factor3))
+
+```
+
+
+<br>
+<br>
+
+
+
+
+
 ## Display structure for UTUVA data
 
 <br>
@@ -186,6 +312,61 @@ print(summary_aov4)
 <br>
 <br>
 
+
+## Chi square test analyses for hypertension within UTUVA
+
+<br>
+
+```{r utuva_ht}
+
+# Summarize variation in antihypertensive medication use by basic school education
+utuva %>%
+    group_by(basic_school.factor3) %>%
+    summarise(n_total = n(),
+              n_ht = sum(hypertension == 1),
+              percentage_ht = 100 * mean(hypertension))
+
+
+utuva$hypertension.factor <- factor(utuva$hypertension)
+
+# Chi-square test for association between antihypertensive medication use and education groups
+chisq.test(table(utuva$hypertension.factor, utuva$basic_school.factor3))
+
+```
+
+
+<br>
+<br>
+
+
+
+## Chi square test analyses for BP meds within UTUVA
+
+<br>
+
+```{r utuva_bp_meds}
+
+# Summarize variation in antihypertensive medication use by basic school education
+utuva %>%
+    group_by(basic_school.factor3) %>%
+    summarise(n_total = n(),
+              n_on_BP_meds = sum(antihypertensive_med == 1),
+              percentage_meds = 100 * mean(antihypertensive_med))
+
+
+utuva$antihypertensive_med.factor <- factor(utuva$antihypertensive_med)
+
+# Chi-square test for association between antihypertensive medication use and education groups
+chisq.test(table(utuva$antihypertensive_med.factor, utuva$basic_school.factor3))
+
+```
+
+
+<br>
+<br>
+
+
+
 # TUVA mean SBP
 
 <br>
@@ -195,7 +376,7 @@ print(summary_aov4)
 tuva %>%
   group_by(basic_school.factor3) %>%
   summarize(
-    mean_tuva1sbp = mean(tuva1sbp, na.rm = TRUE),
+    mean_tuva1sbp = format(round(mean(tuva1sbp, na.rm = TRUE), 1), nsmall = 1),
     sd_tuva1spd = sd(tuva1sbp, na.rm = TRUE)
   )
 ```
@@ -229,7 +410,7 @@ tuva %>%
 utuva %>%
   group_by(basic_school.factor3) %>%
   summarize(
-    mean_utuva1sbp = mean(utuva1sbp, na.rm = TRUE),
+    mean_utuva1sbp = format(round(mean(utuva1sbp, na.rm = TRUE), 1), nsmall = 1),
     sd_utuva1sbp = sd(utuva1sbp, na.rm = TRUE)
     )
 ```

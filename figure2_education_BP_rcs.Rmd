@@ -47,6 +47,40 @@ axisfontsize <- 18
 <br>
 <br>
 
+
+## Display N number for TUVA data
+
+<br>
+
+```{r n_tuva}
+
+tuva %>% nrow()
+
+```
+
+   
+ 
+<br>
+<br>
+ 
+## Display N number for UTUVA data
+
+<br>
+
+```{r n_utuva}
+
+utuva %>% nrow()
+
+```
+
+   
+ 
+<br>
+<br>
+  
+ 
+
+
 ### Linear Regression Model with RCS Transformation combined 
 
 <br>
@@ -320,9 +354,17 @@ panel
 
 # Save it as PNG
 image_write(panel,
-            path = "education_SBP_DBP_rcs_fig3.png",
+            path = "figure2_education_SBP_DBP_rcs.png",
             format = "png",
             density = 300)
+
+# Save it as TIFF
+image_write(panel,
+            path = "figure2_education_SBP_DBP_rcs.tiff",
+            format = "tiff",
+            density = 300,
+            compression = "LZW")
+
 
 ```
 

@@ -23,7 +23,7 @@ here::i_am("article2/README.R")
 # After that, you can check where the project root is by running "here()"
 here()
 
-#  Load the datasets using {here} package
+# Load the datasets using {here} package
 # article2tuva_file <- here("data", "tuva_edu.rds")
 # article2utuva_file <- here("data", "utuva_edu.rds")
 article2file <- here("data", "tuva_utuva_edu.rds")
@@ -32,10 +32,35 @@ article2file <- here("data", "tuva_utuva_edu.rds")
 # utuva <- readRDS(article2utuva_file)
 tuva_utuva_edu <- readRDS(article2file)
 
+
+# Load hypertension prevalence and BP medication data from Article 1 analyses
+ht_file_tuva <- here("data", "article1tuva_bp_meds_final.rds")
+ht_file_utuva <- here("data", "article1utuva_bp_meds_final.rds")
+
+ht_tuva <- readRDS(ht_file_tuva)
+ht_utuva <- readRDS(ht_file_utuva)
+
+
 # Clean up variables
 # rm(article2tuva_file, article2utuva_file)
-rm(article2file)
+rm(article2file, ht_file_tuva, ht_file_utuva)
 
+# Only retain the wanted hypertension/medication variables
+ht_tuva <- ht_tuva %>% select(ID1991, hypertension_tuva1, antihypertensive_med)
+ht_tuva <- ht_tuva %>% rename(hypertension = hypertension_tuva1)
+
+ht_utuva <- ht_utuva %>% select(ID1991, antihypertensive_med, hypertension_utuva1)
+ht_utuva <- ht_utuva %>% rename(hypertension = hypertension_utuva1)
+
+ht_data <- rbind(ht_tuva, ht_utuva)
+
+# Merge the hypertension prevalence and BP medication use data from Article 1
+tuva_utuva_edu <- left_join(tuva_utuva_edu, ht_data, by = "ID1991")
+
+# Clean up variables
+# rm(article2tuva_file, article2utuva_file)
+rm(ht_data, ht_tuva, ht_utuva)
+  
 # Set up necessary general settings
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -59,6 +84,33 @@ str(tuva_utuva_edu)
 <br>
 <br>
 
+
+## Populate factor variables that are suitable for tableone
+
+<br>
+
+```{r factor_variables}
+
+tuva_utuva_edu$hypertension.factor <- factor(tuva_utuva_edu$hypertension,
+                                             levels = c(0,1),
+                                             labels = c("No", "Yes"))
+
+tuva_utuva_edu$antihypertensive_med.factor <- factor(tuva_utuva_edu$antihypertensive_med,
+                                             levels = c(0,1),
+                                             labels = c("No", "Yes"))  
+
+tuva_utuva_edu$tertiary.factor <- factor(tuva_utuva_edu$tertiary,
+                                             levels = c(0,1),
+                                             labels = c("No", "Yes"))  
+
+```
+
+
+<br>
+<br>
+
+
+
 ## Rename variables
 
 <br>
@@ -66,14 +118,21 @@ str(tuva_utuva_edu)
 ```{r rename}
 
 tuva_utuva_edu <- tuva_utuva_edu %>%
-                 rename(`Age (years)` = age ,
-                        `Women`= gender.factor,
-                        `Systolic BP (mmHg)`= sbp ,
-                        `Diastolic BP (mmHg)` = dbp,
-                        `Basic education` = basic_school.factor3,
-                        `Body mass index (kg/m2)` = bmi,
-                        `Education duration (years)` = edu_duration,
-                        `Smoking status`= smoking.factor)
+                 rename(
+                   
+   `Age (years)` = age ,
+   `Women`= gender.factor,
+   `Systolic BP (mmHg)`= sbp ,
+   `Diastolic BP (mmHg)` = dbp,
+   
+   `Hypertension` = hypertension.factor,
+   `Use of any antihypertensive medication` =  antihypertensive_med.factor,
+   
+   `Basic education` = basic_school.factor3,
+   `Body mass index (kg/m2)` = bmi,
+   `Education duration (years)` = edu_duration,
+   `Tertiary education` = tertiary.factor,
+   `Smoking status`= smoking.factor)
 
 ```
 
@@ -92,19 +151,15 @@ myVars <- c(
 "Women",
 "Basic education",
 "Education duration (years)",
+"Tertiary education",
 "Systolic BP (mmHg)",
 "Diastolic BP (mmHg)",
+"Hypertension",
+"Use of any antihypertensive medication",
 "Body mass index (kg/m2)",
 "Smoking status"
 )
 
-# # Of the above, list only categorical variables
-# catVars <- c("Women", "Basic education", "Smoking status")
-
-  
-# # Create and store a tableone object
-# article2table1 <- CreateTableOne(vars = myVars, strata = "cohort",
-#                                 data = tuva_utuva_edu, factorVars = catVars)
 
 # Create and store a tableone object
 article2table1 <- CreateTableOne(vars = myVars, strata = "cohort",
@@ -148,14 +203,6 @@ ft <- ft %>% add_header_lines("Table 1. Characteristics of the study cohorts.")
 ft <- ft %>% add_footer_lines("Values are means ± standard deviations for continuous data and numbers and percentages for categorical data. BP, blood pressure.")
 
 ft <- ft %>% bold(part = "header", bold = TRUE)
-
-# There is no need for prepending with tableone;
-# although it doesn't show in the R Markdown output,
-# prepending happens automatically, as is seen, when the table is exported as docx
-
-# ft <- ft %>% prepend_chunks(i = 7:9, j = 1, as_chunk("\t"))
-# 
-# ft <- ft %>% prepend_chunks(i = 13:15, j = 1, as_chunk("\t"))
 
 ft
 

@@ -55,26 +55,51 @@ custom_colors <- c("Tertiary education" = "#F1D582",
 <br>
 <br> 
  
+
+## Display N number for TUVA data
+
+<br>
+
+```{r n_tuva}
+
+tuva %>% nrow()
+tuva_utuva %>% filter(cohort == "1920-born TUVA cohort") %>% nrow()
+ 
+
+```
+
+   
+ 
+<br>
+<br>
+ 
+## Display N number for UTUVA data
+
+<br>
+
+```{r n_utuva}
+
+utuva %>% nrow()
+tuva_utuva %>% filter(cohort == "1940-born UTUVA cohort") %>% nrow() 
+
+
+```
+
+   
+ 
+<br>
+<br>
+  
+  
+ 
+ 
+ 
 # Display a prop.table for tertiary education
 
 <br>
 
 ```{r tertiary_variable}
 
-# Create variable for tertiary education
-utuva <- utuva %>%
-  mutate(tertiary = case_when(
-    voc_edu == 4 ~ 1,
-    is.na(voc_edu) ~ 0,
-    TRUE ~ 0
-  ))
-
-# Convert to factor
-utuva$tertiary.factor <- factor(utuva$tertiary,
-                                       levels = c(1,0),
-                                       labels = c("Tertiary education",
-                                                  "No tertiary education"))
-                                      
 # Display a breakdown of tertiary education
 prop.table(table(utuva$tertiary.factor)) * 100
 
@@ -92,7 +117,7 @@ prop.table(table(utuva$tertiary.factor)) * 100
 utuva %>%
   group_by(tertiary.factor) %>%
   summarize(
-    mean_utuva1sbp = mean(utuva1sbp, na.rm = TRUE),
+    mean_utuva1sbp = format(round(mean(utuva1sbp, na.rm = TRUE), 1), nsmall=1),
     sd_utuva1spd = sd(utuva1sbp, na.rm = TRUE)
   )
 
@@ -277,15 +302,23 @@ panel
 # otherwise proportions get distorted.
  
 # Save as PDF with dpi specified
- ggsave("tertiary_education_SBP_DBP.pdf", width = 15, height =5, dpi = 600)
+ ggsave("figure3_tertiary_education_SBP_DBP.pdf", width = 15, height =5, dpi = 600)
 
 # Load that pdf file with the magick package
- pdf_image <- magick::image_read_pdf("tertiary_education_SBP_DBP.pdf", density = 600)
+ pdf_image <- magick::image_read_pdf("figure3_tertiary_education_SBP_DBP.pdf", density = 600)
 
 # Save it as PNG
  image_write(pdf_image,
-             path = "tertiary_education_SBP_DBP.png",
+             path = "figure3_tertiary_education_SBP_DBP.png",
              format = "png",
              density = 600)
 
+ # Save it as TIFF
+ image_write(pdf_image,
+             path = "figure3_tertiary_education_SBP_DBP.tiff",
+             format = "tiff",
+             density = 600,
+             compression = "LZW")
+
+ 
 ```
